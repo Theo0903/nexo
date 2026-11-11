@@ -1,0 +1,6 @@
+.env
+*.db
+*.log
+*.xlsx
+*.csv
+__pycache__/

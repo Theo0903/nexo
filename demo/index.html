@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nexo · Portal de Gestão (demo)</title>
+<style>
+:root{--navy:#14283C;--navy2:#1E3A54;--acc:#1FA89A;--acc2:#F2A33A;--acc3:#6C7BD9;--bg:#F3F6F8;--card:#fff;--tx:#1F2A33;--mut:#6A7782;--line:#DDE3E8;--bad:#D9534F;--ok:#2E9E6B;--r:14px}
+@media (prefers-color-scheme:dark){:root{--bg:#0E1A26;--card:#162636;--tx:#E6EDF2;--mut:#93A5B5;--line:#26394B}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--tx);font-size:14px;line-height:1.45}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+aside{background:var(--navy);color:#E8EEF3;padding:22px 14px;position:sticky;top:0;height:100vh}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;padding:0 8px 22px}
+.logo i{width:30px;height:30px;border-radius:9px;background:var(--acc);display:grid;place-items:center;font-style:normal;color:#fff}
+nav a{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;color:#C9D6E0;text-decoration:none;margin-bottom:4px;cursor:pointer;transition:.15s}
+nav a:hover{background:var(--navy2);color:#fff}
+nav a.on{background:var(--acc);color:#fff;font-weight:600}
+.aviso{position:absolute;left:14px;right:14px;bottom:18px;font-size:11.5px;color:#9FB3C3;border:1px dashed #3A5268;border-radius:10px;padding:9px 10px}
+main{padding:26px 30px 50px;min-width:0}
+header.top{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+h1{font-size:22px}h1 small{display:block;font-size:13px;font-weight:400;color:var(--mut)}
+.filtros{display:flex;gap:8px;flex-wrap:wrap}
+select,input[type=search],input[type=number]{background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit}
+input[type=range]{accent-color:var(--acc);width:100%}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;border-top:3px solid var(--acc)}
+.kpi:first-child{background:var(--navy);color:#fff;border-color:var(--navy)}
+.kpi span{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}.kpi:first-child span{color:#9FB3C3}
+.kpi b{display:block;font-size:26px;margin-top:4px}
+.kpi em{font-style:normal;font-size:12px}.up{color:var(--ok)}.down{color:var(--bad)}
+.grid{display:grid;gap:14px;margin-bottom:16px}.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0}
+.card h2{font-size:14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.card h2 small{font-weight:400;color:var(--mut)}
+.leg{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-top:8px;flex-wrap:wrap}.leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+tr:hover td{background:rgba(31,168,154,.06)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.bar{height:8px;border-radius:6px;background:var(--line);overflow:hidden;min-width:90px}.bar i{display:block;height:100%;border-radius:6px;background:var(--acc)}
+.rank{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--line);font-size:11px;font-weight:700}
+.rank.r1{background:var(--acc2);color:#fff}
+.dest{border-left:4px solid var(--acc);}
+.dest b{display:block;font-size:18px;margin:4px 0}.dest span{color:var(--mut);font-size:12px}
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600}
+.tag.ok{background:rgba(46,158,107,.14);color:var(--ok)}.tag.warn{background:rgba(242,163,58,.18);color:#B9761A}.tag.bad{background:rgba(217,83,79,.14);color:var(--bad)}
+.sim{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:14px}
+@media(max-width:900px){.app{grid-template-columns:1fr}aside{position:static;height:auto}.aviso{position:static;margin-top:14px}.sim{grid-template-columns:1fr}main{padding:18px 14px}}
+label.f{display:block;font-size:12px;color:var(--mut);margin:12px 0 4px}label.f b{float:right;color:var(--tx)}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.res div{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg)}.res span{font-size:11.5px;color:var(--mut);display:block}.res b{font-size:20px}
+.scroll{overflow:auto;max-height:420px}
+svg text{fill:var(--mut);font-size:11px}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="logo"><i>◧</i> Nexo</div>
+    <nav id="menu">
+      <a data-p="geral" class="on">▦ Visão geral</a>
+      <a data-p="lojas">⌂ Lojas</a>
+      <a data-p="cancel">⊘ Cancelamentos</a>
+      <a data-p="cmv">◔ CMV e promoção</a>
+    </nav>
+    <div class="aviso">Demonstração com dados 100% fictícios, gerados aleatoriamente no navegador.</div>
+  </aside>
+  <main>
+    <header class="top">
+      <h1 id="tit"></h1>
+      <div class="filtros" id="filtros">
+        <select id="fCanal"></select>
+        <select id="fPer"><option value="3">Últimos 3 meses</option><option value="6">Últimos 6 meses</option><option value="12" selected>Últimos 12 meses</option></select>
+      </div>
+    </header>
+    <div id="pg"></div>
+  </main>
+</div>
+
+<script>
+/* ---------- dados fictícios (gerador com semente fixa: sempre os mesmos números) ---------- */
+const rnd=(()=>{let a=20260;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}})();
+const MESES=["out/25","nov/25","dez/25","jan/26","fev/26","mar/26","abr/26","mai/26","jun/26","jul/26","ago/26","set/26"];
+const CANAIS=[{id:"pdv",nome:"Balcão (PDV)",cor:"#6C7BD9",ticket:44},{id:"da",nome:"Delivery A",cor:"#1FA89A",ticket:62},{id:"db",nome:"Delivery B",cor:"#F2A33A",ticket:55}];
+const FRANQ=["Franqueado A","Franqueado B","Franqueado C","Franqueado D","Franqueado E","Franqueado F","Franqueado G","Franqueado H"];
+const MOTIVOS=["Loja sem capacidade","Item indisponível","Cliente desistiu","Endereço fora da área","Erro de cadastro","Pedido duplicado"];
+const LOJAS=Array.from({length:24},(_,i)=>{const porte=.55+rnd()*1.1,f=Math.floor(rnd()*FRANQ.length);
+  const mix=CANAIS.map(()=>.3+rnd());const s=mix.reduce((a,b)=>a+b);
+  const m=MESES.map((_,k)=>{const sazon=1+.12*Math.sin((k+1)/12*6.28)+k*.012;
+    return CANAIS.map((c,ci)=>{const ped=Math.round(1100*porte*(mix[ci]/s)*sazon*(.9+rnd()*.2)),fat=ped*c.ticket*(.95+rnd()*.1),canc=ci?Math.round(ped*(.025+rnd()*.035)):0;return{ped,fat,canc,cancV:canc*c.ticket*1.05}})});
+  return{id:i+1,nome:"Unidade "+String(i+1).padStart(2,"0"),fr:FRANQ[f],m}});
+const PRODUTOS=Array.from({length:36},(_,i)=>{const custo=Math.round((6+rnd()*26)*100)/100,pdv=Math.round(custo/(.2+rnd()*.17));
+  return{id:i+1,nome:"Produto "+String(i+1).padStart(2,"0"),linha:["Linha 1","Linha 2","Linha 3","Linha 4"][i%4],custo,pdv,da:Math.round(pdv*1.2),db:Math.round(pdv*1.15),un:Math.round(80+rnd()*900)}});
+
+/* ---------- utilidades ---------- */
+const $=s=>document.querySelector(s),brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}),brl2=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}),n0=v=>Math.round(v).toLocaleString("pt-BR"),pc=(v,d=1)=>(v*100).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d})+"%";
+const S={pg:"geral",canal:"all",per:12,ord:{k:"fat",d:-1},busca:""};
+function soma(lojas,ms,cs){const r={fat:0,ped:0,canc:0,cancV:0};for(const l of lojas)for(const k of ms)for(const c of cs){const x=l.m[k][c];r.fat+=x.fat;r.ped+=x.ped;r.canc+=x.canc;r.cancV+=x.cancV}return r}
+const idxMeses=()=>[...Array(S.per).keys()].map(i=>12-S.per+i),idxCanais=()=>S.canal==="all"?[0,1,2]:[+S.canal];
+
+/* ---------- páginas ---------- */
+function barras(){const ms=idxMeses(),cs=idxCanais(),dados=ms.map(k=>cs.map(c=>soma(LOJAS,[k],[c]).fat)),max=Math.max(...dados.map(d=>d.reduce((a,b)=>a+b,0))),W=640,H=230,bw=W/ms.length;
+  let g="";dados.forEach((d,i)=>{let y=H-24;d.forEach((v,j)=>{const h=v/max*(H-44);y-=h;g+=`<rect x="${i*bw+bw*.18}" y="${y}" width="${bw*.64}" height="${h}" rx="3" fill="${CANAIS[cs[j]].cor}"><title>${MESES[ms[i]]} · ${CANAIS[cs[j]].nome}: ${brl(v)}</title></rect>`});
+    g+=`<text x="${i*bw+bw/2}" y="${H-7}" text-anchor="middle">${MESES[ms[i]]}</text>`});
+  return`<svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg><div class="leg">${cs.map(c=>`<span><i style="background:${CANAIS[c].cor}"></i>${CANAIS[c].nome}</span>`).join("")}</div>`}
+function pgGeral(){const ms=idxMeses(),cs=idxCanais(),t=soma(LOJAS,ms,cs),prev=ms[0]>=S.per?soma(LOJAS,ms.map(k=>k-S.per),cs):null,var_=prev&&prev.fat?t.fat/prev.fat-1:null;
+  const rk=LOJAS.map(l=>({l,...soma([l],ms,cs)})).sort((a,b)=>b.fat-a.fat),max=rk[0].fat;
+  const dest=CANAIS.map((c,ci)=>{const r=LOJAS.map(l=>({l,...soma([l],ms,[ci])})).sort((a,b)=>b.fat-a.fat)[0];return`<div class="card dest" style="border-left-color:${c.cor}"><span>Melhor ${c.nome}</span><b>${r.l.nome}</b><span>${r.l.fr} · ${brl(r.fat)}</span></div>`}).join("");
+  return`<div class="kpis">
+   <div class="kpi"><span>Faturamento</span><b>${brl(t.fat)}</b><em class="${var_>=0?"up":"down"}">${var_==null?"&nbsp;":(var_>=0?"▲ ":"▼ ")+pc(Math.abs(var_))+" vs. período anterior"}</em></div>
+   <div class="kpi"><span>Pedidos</span><b>${n0(t.ped)}</b></div>
+   <div class="kpi"><span>Ticket médio</span><b>${brl2(t.fat/t.ped)}</b></div>
+   <div class="kpi"><span>Cancelamento</span><b>${pc(t.canc/(t.ped||1))}</b><em>${brl(t.cancV)} em pedidos cancelados</em></div></div>
+  <div class="grid g3">${dest}</div>
+  <div class="grid g2"><div class="card"><h2>Faturamento por mês <small>por canal</small></h2>${barras()}</div>
+   <div class="card"><h2>Ranking de lojas <small>top 10 por faturamento</small></h2><div class="scroll"><table>${rk.slice(0,10).map((r,i)=>`<tr><td><span class="rank ${i?"":"r1"}">${i+1}</span></td><td>${r.l.nome}<br><small style="color:var(--mut)">${r.l.fr}</small></td><td style="width:35%"><div class="bar"><i style="width:${r.fat/max*100}%"></i></div></td><td class="num">${brl(r.fat)}</td></tr>`).join("")}</table></div></div></div>`}
+function pgLojas(){const ms=idxMeses(),cs=idxCanais();let rk=LOJAS.map(l=>({l,...soma([l],ms,cs)})).map(r=>({...r,nome:r.l.nome,fr:r.l.fr,tk:r.fat/r.ped,tc:r.canc/(r.ped||1)}));
+  const q=S.busca.toLowerCase();if(q)rk=rk.filter(r=>(r.nome+r.fr).toLowerCase().includes(q));
+  rk.sort((a,b)=>typeof a[S.ord.k]==="string"?S.ord.d*a[S.ord.k].localeCompare(b[S.ord.k]):S.ord.d*(a[S.ord.k]-b[S.ord.k]));
+  const th=(k,t,c="")=>`<th class="${c}" data-o="${k}">${t}${S.ord.k===k?(S.ord.d<0?" ▾":" ▴"):""}</th>`;
+  return`<div class="card"><h2>Todas as lojas <small>${rk.length} resultados</small></h2><input type="search" id="busca" placeholder="Buscar loja ou franqueado…" value="${S.busca}" style="margin-bottom:12px;min-width:260px">
+  <div class="scroll" style="max-height:none"><table><tr>${th("nome","Loja")}${th("fr","Franqueado")}${th("fat","Faturamento","num")}${th("ped","Pedidos","num")}${th("tk","Ticket","num")}${th("tc","Cancel.","num")}</tr>
+  ${rk.map(r=>`<tr><td>${r.nome}</td><td>${r.fr}</td><td class="num">${brl(r.fat)}</td><td class="num">${n0(r.ped)}</td><td class="num">${brl2(r.tk)}</td><td class="num"><span class="tag ${r.tc>.05?"bad":r.tc>.035?"warn":"ok"}">${pc(r.tc)}</span></td></tr>`).join("")}</table></div></div>`}
+function pgCancel(){const ms=idxMeses(),cs=idxCanais().filter(c=>c>0),t=soma(LOJAS,ms,cs),pesos=[.31,.24,.17,.12,.1,.06],tot=pesos.reduce((a,b)=>a+b);
+  const rows=MOTIVOS.map((m,i)=>({m,q:t.canc*pesos[i]/tot,v:t.cancV*pesos[i]/tot})),max=rows[0].v;
+  const por=LOJAS.map(l=>({l,...soma([l],ms,cs)})).sort((a,b)=>b.cancV-a.cancV).slice(0,8);
+  return`<div class="kpis"><div class="kpi"><span>Pedidos cancelados</span><b>${n0(t.canc)}</b></div><div class="kpi"><span>Valor cancelado</span><b>${brl(t.cancV)}</b></div><div class="kpi"><span>% do faturamento</span><b>${pc(t.cancV/(t.fat||1))}</b></div></div>
+  <div class="grid g2"><div class="card"><h2>Motivo <small>quantidade e valor</small></h2><table>${rows.map(r=>`<tr><td>${r.m}</td><td style="width:30%"><div class="bar"><i style="width:${r.v/max*100}%;background:var(--acc2)"></i></div></td><td class="num">${n0(r.q)}</td><td class="num">${brl(r.v)}</td></tr>`).join("")}</table></div>
+  <div class="card"><h2>Lojas com mais valor cancelado</h2><table>${por.map(r=>`<tr><td>${r.l.nome}</td><td class="num">${n0(r.canc)}</td><td class="num">${brl(r.cancV)}</td><td class="num">${pc(r.canc/(r.ped||1))}</td></tr>`).join("")}</table></div></div>
+  <p style="color:var(--mut);font-size:12px">Cancelamento considera só os canais de delivery.</p>`}
+const CM={prod:1,canal:"da",desc:30,tx:24.59};
+function pgCmv(){const cv=CM.canal==="da"?"Delivery A":"Delivery B";
+  return`<div class="sim"><div class="card"><h2>Simulador de desconto</h2>
+   <label class="f">Produto</label><select id="cProd" style="width:100%">${PRODUTOS.map(p=>`<option value="${p.id}" ${p.id==CM.prod?"selected":""}>${p.nome} · ${p.linha}</option>`).join("")}</select>
+   <label class="f">Canal</label><select id="cCan" style="width:100%"><option value="da" ${CM.canal=="da"?"selected":""}>Delivery A</option><option value="db" ${CM.canal=="db"?"selected":""}>Delivery B</option></select>
+   <label class="f">Desconto ao cliente <b id="vD">${CM.desc}%</b></label><input type="range" id="cDesc" min="0" max="70" step="5" value="${CM.desc}">
+   <label class="f">Taxa da plataforma sobre o recebido (%)</label><input type="number" id="cTx" value="${CM.tx}" step="0.01" style="width:100%"></div>
+   <div><div class="res" id="res"></div><div class="card"><h2>Todos os produtos com este desconto <small>ordenado por CMV</small></h2><div class="scroll"><table id="tabCmv"></table></div></div></div></div>`}
+function calc(p){const P=p[CM.canal],tx=CM.tx/100,rec=P*(1-CM.desc/100)*(1-tx),m=rec-p.custo,orig=P*(1-tx)-p.custo;return{P,rec,m,orig,cmv:rec>0?p.custo/rec:9,cmv0:p.custo/(P*(1-tx)),ped:m>0?Math.ceil(orig/m-1e-9):null}}
+function atualizaCmv(){const p=PRODUTOS.find(x=>x.id==CM.prod),r=calc(p),st=r=>r.m<=0?["bad","Prejuízo"]:r.cmv>=.5?["warn","CMV alto"]:["ok","OK"];
+  $("#vD").textContent=CM.desc+"%";
+  $("#res").innerHTML=`<div><span>Preço de lista</span><b>${brl2(r.P)}</b></div><div><span>Preço com desconto</span><b>${brl2(r.P*(1-CM.desc/100))}</b></div><div><span>Recebido líquido</span><b>${brl2(r.rec)}</b></div><div><span>CMV (antes → depois)</span><b>${pc(r.cmv0)} → ${pc(r.cmv)}</b></div><div><span>Margem por pedido</span><b>${brl2(r.m)}</b></div><div><span>Pedidos p/ igualar a margem original</span><b>${r.ped??"inviável"}</b></div>`;
+  $("#tabCmv").innerHTML=`<tr><th>Produto</th><th class="num">Lista</th><th class="num">CMV</th><th class="num">Margem</th><th class="num">Pedidos p/ igualar</th><th>Status</th></tr>`+PRODUTOS.map(p=>({p,...calc(p)})).sort((a,b)=>a.cmv-b.cmv).map(r=>{const[s,t]=st(r);return`<tr><td>${r.p.nome}</td><td class="num">${brl2(r.P)}</td><td class="num">${pc(r.cmv)}</td><td class="num">${brl2(r.m)}</td><td class="num">${r.ped??"–"}</td><td><span class="tag ${s}">${t}</span></td></tr>`}).join("")}
+
+/* ---------- navegação ---------- */
+const TIT={geral:["Visão geral","Rede, canais e lojas num só lugar"],lojas:["Lojas","Desempenho por unidade e franqueado"],cancel:["Cancelamentos","Motivo, quantidade e valor"],cmv:["CMV e promoção","Quanto a promoção custa e quantos pedidos ela precisa"]};
+function render(){const[t,s]=TIT[S.pg];$("#tit").innerHTML=`${t}<small>${s}</small>`;
+  $("#filtros").style.display=S.pg==="cmv"?"none":"flex";
+  $("#pg").innerHTML={geral:pgGeral,lojas:pgLojas,cancel:pgCancel,cmv:pgCmv}[S.pg]();
+  document.querySelectorAll("#menu a").forEach(a=>a.classList.toggle("on",a.dataset.p===S.pg));
+  if(S.pg==="cmv"){atualizaCmv();$("#cProd").onchange=e=>{CM.prod=+e.target.value;atualizaCmv()};$("#cCan").onchange=e=>{CM.canal=e.target.value;atualizaCmv()};$("#cDesc").oninput=e=>{CM.desc=+e.target.value;atualizaCmv()};$("#cTx").oninput=e=>{CM.tx=+e.target.value||0;atualizaCmv()}}
+  if(S.pg==="lojas"){const b=$("#busca");b.oninput=e=>{S.busca=e.target.value;const p=e.target.selectionStart;render();const n=$("#busca");n.focus();n.setSelectionRange(p,p)};document.querySelectorAll("th[data-o]").forEach(h=>h.onclick=()=>{const k=h.dataset.o;S.ord=S.ord.k===k?{k,d:-S.ord.d}:{k,d:k==="nome"||k==="fr"?1:-1};render()})}}
+$("#fCanal").innerHTML=`<option value="all">Todos os canais</option>`+CANAIS.map((c,i)=>`<option value="${i}">${c.nome}</option>`).join("");
+$("#fCanal").onchange=e=>{S.canal=e.target.value;render()};$("#fPer").onchange=e=>{S.per=+e.target.value;render()};
+document.querySelectorAll("#menu a").forEach(a=>a.onclick=()=>{S.pg=a.dataset.p;location.hash=S.pg;render()});
+if(TIT[location.hash.slice(1)])S.pg=location.hash.slice(1);
+render();
+</script>
+</body>
+</html>
