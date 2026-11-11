@@ -84,13 +84,13 @@ svg text{fill:var(--mut);font-size:11px}
 const rnd=(()=>{let a=20260;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}})();
 const MESES=["out/25","nov/25","dez/25","jan/26","fev/26","mar/26","abr/26","mai/26","jun/26","jul/26","ago/26","set/26"];
 const CANAIS=[{id:"pdv",nome:"Balcão (PDV)",cor:"#6C7BD9",ticket:44},{id:"da",nome:"Delivery A",cor:"#1FA89A",ticket:62},{id:"db",nome:"Delivery B",cor:"#F2A33A",ticket:55}];
-const FRANQ=["Franqueado A","Franqueado B","Franqueado C","Franqueado D","Franqueado E","Franqueado F","Franqueado G","Franqueado H"];
+const PESSOAS=["Pessoa A","Pessoa B","Pessoa C","Pessoa D","Pessoa E","Pessoa F","Pessoa G","Pessoa H"];
 const MOTIVOS=["Loja sem capacidade","Item indisponível","Cliente desistiu","Endereço fora da área","Erro de cadastro","Pedido duplicado"];
-const LOJAS=Array.from({length:24},(_,i)=>{const porte=.55+rnd()*1.1,f=Math.floor(rnd()*FRANQ.length);
+const LOJAS=Array.from({length:24},(_,i)=>{const porte=.55+rnd()*1.1,f=Math.floor(rnd()*PESSOAS.length);
   const mix=CANAIS.map(()=>.3+rnd());const s=mix.reduce((a,b)=>a+b);
   const m=MESES.map((_,k)=>{const sazon=1+.12*Math.sin((k+1)/12*6.28)+k*.012;
     return CANAIS.map((c,ci)=>{const ped=Math.round(1100*porte*(mix[ci]/s)*sazon*(.9+rnd()*.2)),fat=ped*c.ticket*(.95+rnd()*.1),canc=ci?Math.round(ped*(.025+rnd()*.035)):0;return{ped,fat,canc,cancV:canc*c.ticket*1.05}})});
-  return{id:i+1,nome:"Unidade "+String(i+1).padStart(2,"0"),fr:FRANQ[f],m}});
+  return{id:i+1,nome:"Unidade "+String(i+1).padStart(2,"0"),fr:PESSOAS[f],m}});
 const PRODUTOS=Array.from({length:36},(_,i)=>{const custo=Math.round((6+rnd()*26)*100)/100,pdv=Math.round(custo/(.2+rnd()*.17));
   return{id:i+1,nome:"Produto "+String(i+1).padStart(2,"0"),linha:["Linha 1","Linha 2","Linha 3","Linha 4"][i%4],custo,pdv,da:Math.round(pdv*1.2),db:Math.round(pdv*1.15),un:Math.round(80+rnd()*900)}});
 
@@ -120,8 +120,8 @@ function pgLojas(){const ms=idxMeses(),cs=idxCanais();let rk=LOJAS.map(l=>({l,..
   const q=S.busca.toLowerCase();if(q)rk=rk.filter(r=>(r.nome+r.fr).toLowerCase().includes(q));
   rk.sort((a,b)=>typeof a[S.ord.k]==="string"?S.ord.d*a[S.ord.k].localeCompare(b[S.ord.k]):S.ord.d*(a[S.ord.k]-b[S.ord.k]));
   const th=(k,t,c="")=>`<th class="${c}" data-o="${k}">${t}${S.ord.k===k?(S.ord.d<0?" ▾":" ▴"):""}</th>`;
-  return`<div class="card"><h2>Todas as lojas <small>${rk.length} resultados</small></h2><input type="search" id="busca" placeholder="Buscar loja ou franqueado…" value="${S.busca}" style="margin-bottom:12px;min-width:260px">
-  <div class="scroll" style="max-height:none"><table><tr>${th("nome","Loja")}${th("fr","Franqueado")}${th("fat","Faturamento","num")}${th("ped","Pedidos","num")}${th("tk","Ticket","num")}${th("tc","Cancel.","num")}</tr>
+  return`<div class="card"><h2>Todas as lojas <small>${rk.length} resultados</small></h2><input type="search" id="busca" placeholder="Buscar loja ou responsável…" value="${S.busca}" style="margin-bottom:12px;min-width:260px">
+  <div class="scroll" style="max-height:none"><table><tr>${th("nome","Loja")}${th("fr","Responsável")}${th("fat","Faturamento","num")}${th("ped","Pedidos","num")}${th("tk","Ticket","num")}${th("tc","Cancel.","num")}</tr>
   ${rk.map(r=>`<tr><td>${r.nome}</td><td>${r.fr}</td><td class="num">${brl(r.fat)}</td><td class="num">${n0(r.ped)}</td><td class="num">${brl2(r.tk)}</td><td class="num"><span class="tag ${r.tc>.05?"bad":r.tc>.035?"warn":"ok"}">${pc(r.tc)}</span></td></tr>`).join("")}</table></div></div>`}
 function pgCancel(){const ms=idxMeses(),cs=idxCanais().filter(c=>c>0),t=soma(LOJAS,ms,cs),pesos=[.31,.24,.17,.12,.1,.06],tot=pesos.reduce((a,b)=>a+b);
   const rows=MOTIVOS.map((m,i)=>({m,q:t.canc*pesos[i]/tot,v:t.cancV*pesos[i]/tot})),max=rows[0].v;
@@ -145,7 +145,7 @@ function atualizaCmv(){const p=PRODUTOS.find(x=>x.id==CM.prod),r=calc(p),st=r=>r
   $("#tabCmv").innerHTML=`<tr><th>Produto</th><th class="num">Lista</th><th class="num">CMV</th><th class="num">Margem</th><th class="num">Pedidos p/ igualar</th><th>Status</th></tr>`+PRODUTOS.map(p=>({p,...calc(p)})).sort((a,b)=>a.cmv-b.cmv).map(r=>{const[s,t]=st(r);return`<tr><td>${r.p.nome}</td><td class="num">${brl2(r.P)}</td><td class="num">${pc(r.cmv)}</td><td class="num">${brl2(r.m)}</td><td class="num">${r.ped??"–"}</td><td><span class="tag ${s}">${t}</span></td></tr>`}).join("")}
 
 /* ---------- navegação ---------- */
-const TIT={geral:["Visão geral","Rede, canais e lojas num só lugar"],lojas:["Lojas","Desempenho por unidade e franqueado"],cancel:["Cancelamentos","Motivo, quantidade e valor"],cmv:["CMV e promoção","Quanto a promoção custa e quantos pedidos ela precisa"]};
+const TIT={geral:["Visão geral","Rede, canais e lojas num só lugar"],lojas:["Lojas","Desempenho por unidade e responsável"],cancel:["Cancelamentos","Motivo, quantidade e valor"],cmv:["CMV e promoção","Quanto a promoção custa e quantos pedidos ela precisa"]};
 function render(){const[t,s]=TIT[S.pg];$("#tit").innerHTML=`${t}<small>${s}</small>`;
   $("#filtros").style.display=S.pg==="cmv"?"none":"flex";
   $("#pg").innerHTML={geral:pgGeral,lojas:pgLojas,cancel:pgCancel,cmv:pgCmv}[S.pg]();

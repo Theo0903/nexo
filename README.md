@@ -11,7 +11,7 @@ Abra [`demo/index.html`](demo/index.html) no navegador. É um arquivo único, se
 | Tela | O que mostra |
 |---|---|
 | **Visão geral** | Faturamento, pedidos, ticket médio e cancelamento; destaque de melhor unidade por canal; faturamento mensal por canal; ranking de lojas |
-| **Lojas** | Tabela com busca e ordenação, com alerta de cancelamento por faixa |
+| **Lojas** | Tabela com busca (loja ou pessoa) e ordenação, com alerta de cancelamento por faixa |
 | **Cancelamentos** | Motivo, quantidade e valor cancelado; lojas com mais valor cancelado |
 | **CMV e promoção** | Simulador de desconto: preço com desconto, recebido líquido depois da taxa da plataforma, CMV antes e depois, margem por pedido e **quantos pedidos a promoção precisa para igualar a margem original** |
 
