@@ -10,12 +10,20 @@ Abra [`demo/index.html`](demo/index.html) no navegador. É um arquivo único, se
 
 | Tela | O que mostra |
 |---|---|
-| **Visão geral** | Faturamento, pedidos, ticket médio e cancelamento; destaque de melhor unidade por canal; faturamento mensal por canal; ranking de lojas |
-| **Lojas** | Tabela com busca (loja ou pessoa) e ordenação, com alerta de cancelamento por faixa |
+| **Visão geral** | Faturamento, pedidos, ticket médio e cancelamento; melhor unidade por canal; faturamento mensal por canal; ranking de lojas |
+| **Regiões** | Mapa esquemático das lojas (bolha = faturamento), resumo por região e detalhe ao clicar |
+| **Lojas** | Tabela com busca (loja ou pessoa), ordenação e alerta de cancelamento por faixa |
+| **Comparar lojas** | Duas unidades lado a lado, com diferença por indicador e curva mensal |
+| **Ranking misto** | Nota final por loja com **pesos ajustáveis** (faturamento, ticket, cancelamento, nota, conversão) |
+| **Funil e avaliações** | Visitas, carrinho e pedido; recompra; distribuição de notas; lojas que pedem atenção |
 | **Cancelamentos** | Motivo, quantidade e valor cancelado; lojas com mais valor cancelado |
-| **CMV e promoção** | Simulador de desconto: preço com desconto, recebido líquido depois da taxa da plataforma, CMV antes e depois, margem por pedido e **quantos pedidos a promoção precisa para igualar a margem original** |
+| **Cardápio** | Cadastro de itens por canal: preço e status editáveis, **ajuste em massa** com pré-visualização e trava de risco ("Enviar mesmo assim?"), exportar e importar planilha, replicar para outras lojas, histórico e desfazer |
+| **CMV e promoção** | Simulador de desconto: recebido líquido depois da taxa da plataforma, CMV antes e depois, margem e **quantos pedidos a promoção precisa para igualar a margem original** |
+| **Alertas** | Regras que separam **falha de dado** de **movimento de negócio**: cancelamento alto, queda de faturamento, nota baixa, item de alta saída pausado, preço fora da regra e promoção que não paga. Recalculam conforme você mexe no cardápio |
 
 Filtros de canal e de período (3, 6 e 12 meses). Tema claro e escuro automáticos.
+
+Na tela Cardápio, **nada é enviado a nenhuma plataforma**: as alterações ficam só no navegador, para demonstrar o fluxo.
 
 ## Regra do simulador de promoção
 

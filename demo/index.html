@@ -53,6 +53,17 @@ label.f{display:block;font-size:12px;color:var(--mut);margin:12px 0 4px}label.f 
 .res div{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg)}.res span{font-size:11.5px;color:var(--mut);display:block}.res b{font-size:20px}
 .scroll{overflow:auto;max-height:420px}
 svg text{fill:var(--mut);font-size:11px}
+.mapa text{font-size:3.2px}
+.barra{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.esp{flex:1}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}.btn:hover{filter:brightness(1.08)}
+.btn.sec{background:transparent;color:var(--tx);border:1px solid var(--line)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.nota{color:var(--mut);font-size:12.5px}
+.pr{width:84px;text-align:right;padding:5px 7px;border-radius:8px}
+.sw{position:relative;display:inline-block;width:34px;height:20px}.sw input{opacity:0;width:0;height:0}.sw i{position:absolute;inset:0;background:var(--line);border-radius:20px;transition:.15s;cursor:pointer}
+.sw i::before{content:"";position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.15s}.sw input:checked+i{background:var(--acc)}.sw input:checked+i::before{transform:translateX(14px)}
+.risk{display:block;margin-top:10px;padding:10px 12px;border:1px solid var(--bad);border-radius:10px;background:rgba(217,83,79,.08)}
+#toast{position:fixed;right:20px;bottom:20px;max-width:360px;background:var(--navy);color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transform:translateY(12px);pointer-events:none;transition:.25s;z-index:9}#toast.show{opacity:1;transform:none}
+nav a{font-size:13.5px}
 </style>
 </head>
 <body>
@@ -61,9 +72,15 @@ svg text{fill:var(--mut);font-size:11px}
     <div class="logo"><i>◧</i> Nexo</div>
     <nav id="menu">
       <a data-p="geral" class="on">▦ Visão geral</a>
+      <a data-p="reg">◎ Regiões</a>
       <a data-p="lojas">⌂ Lojas</a>
+      <a data-p="comp">⇄ Comparar lojas</a>
+      <a data-p="rank">★ Ranking misto</a>
+      <a data-p="qual">☺ Funil e avaliações</a>
       <a data-p="cancel">⊘ Cancelamentos</a>
+      <a data-p="card">☰ Cardápio</a>
       <a data-p="cmv">◔ CMV e promoção</a>
+      <a data-p="alert">⚑ Alertas</a>
     </nav>
     <div class="aviso">Demonstração com dados 100% fictícios, gerados aleatoriamente no navegador.</div>
   </aside>
@@ -133,22 +150,163 @@ function pgCancel(){const ms=idxMeses(),cs=idxCanais().filter(c=>c>0),t=soma(LOJ
 const CM={prod:1,canal:"da",desc:30,tx:24.59};
 function pgCmv(){const cv=CM.canal==="da"?"Delivery A":"Delivery B";
   return`<div class="sim"><div class="card"><h2>Simulador de desconto</h2>
-   <label class="f">Produto</label><select id="cProd" style="width:100%">${PRODUTOS.map(p=>`<option value="${p.id}" ${p.id==CM.prod?"selected":""}>${p.nome} · ${p.linha}</option>`).join("")}</select>
+   <label class="f">Produto</label><select id="cProd" style="width:100%">${ITENS.map(p=>`<option value="${p.id}" ${p.id==CM.prod?"selected":""}>${p.nome} · ${p.linha}</option>`).join("")}</select>
    <label class="f">Canal</label><select id="cCan" style="width:100%"><option value="da" ${CM.canal=="da"?"selected":""}>Delivery A</option><option value="db" ${CM.canal=="db"?"selected":""}>Delivery B</option></select>
    <label class="f">Desconto ao cliente <b id="vD">${CM.desc}%</b></label><input type="range" id="cDesc" min="0" max="70" step="5" value="${CM.desc}">
    <label class="f">Taxa da plataforma sobre o recebido (%)</label><input type="number" id="cTx" value="${CM.tx}" step="0.01" style="width:100%"></div>
    <div><div class="res" id="res"></div><div class="card"><h2>Todos os produtos com este desconto <small>ordenado por CMV</small></h2><div class="scroll"><table id="tabCmv"></table></div></div></div></div>`}
-function calc(p){const P=p[CM.canal],tx=CM.tx/100,rec=P*(1-CM.desc/100)*(1-tx),m=rec-p.custo,orig=P*(1-tx)-p.custo;return{P,rec,m,orig,cmv:rec>0?p.custo/rec:9,cmv0:p.custo/(P*(1-tx)),ped:m>0?Math.ceil(orig/m-1e-9):null}}
-function atualizaCmv(){const p=PRODUTOS.find(x=>x.id==CM.prod),r=calc(p),st=r=>r.m<=0?["bad","Prejuízo"]:r.cmv>=.5?["warn","CMV alto"]:["ok","OK"];
+function calc(p){const P=p.preco[CM.canal],tx=CM.tx/100,rec=P*(1-CM.desc/100)*(1-tx),m=rec-p.custo,orig=P*(1-tx)-p.custo;return{P,rec,m,orig,cmv:rec>0?p.custo/rec:9,cmv0:p.custo/(P*(1-tx)),ped:m>0?Math.ceil(orig/m-1e-9):null}}
+function atualizaCmv(){const p=ITENS.find(x=>x.id==CM.prod),r=calc(p),st=r=>r.m<=0?["bad","Prejuízo"]:r.cmv>=.5?["warn","CMV alto"]:["ok","OK"];
   $("#vD").textContent=CM.desc+"%";
   $("#res").innerHTML=`<div><span>Preço de lista</span><b>${brl2(r.P)}</b></div><div><span>Preço com desconto</span><b>${brl2(r.P*(1-CM.desc/100))}</b></div><div><span>Recebido líquido</span><b>${brl2(r.rec)}</b></div><div><span>CMV (antes → depois)</span><b>${pc(r.cmv0)} → ${pc(r.cmv)}</b></div><div><span>Margem por pedido</span><b>${brl2(r.m)}</b></div><div><span>Pedidos p/ igualar a margem original</span><b>${r.ped??"inviável"}</b></div>`;
-  $("#tabCmv").innerHTML=`<tr><th>Produto</th><th class="num">Lista</th><th class="num">CMV</th><th class="num">Margem</th><th class="num">Pedidos p/ igualar</th><th>Status</th></tr>`+PRODUTOS.map(p=>({p,...calc(p)})).sort((a,b)=>a.cmv-b.cmv).map(r=>{const[s,t]=st(r);return`<tr><td>${r.p.nome}</td><td class="num">${brl2(r.P)}</td><td class="num">${pc(r.cmv)}</td><td class="num">${brl2(r.m)}</td><td class="num">${r.ped??"–"}</td><td><span class="tag ${s}">${t}</span></td></tr>`}).join("")}
+  $("#tabCmv").innerHTML=`<tr><th>Produto</th><th class="num">Lista</th><th class="num">CMV</th><th class="num">Margem</th><th class="num">Pedidos p/ igualar</th><th>Status</th></tr>`+ITENS.map(p=>({p,...calc(p)})).sort((a,b)=>a.cmv-b.cmv).map(r=>{const[s,t]=st(r);return`<tr><td>${r.p.nome}</td><td class="num">${brl2(r.P)}</td><td class="num">${pc(r.cmv)}</td><td class="num">${brl2(r.m)}</td><td class="num">${r.ped??"–"}</td><td><span class="tag ${s}">${t}</span></td></tr>`}).join("")}
+
+/* ---------- dados extras ---------- */
+const REG=[{n:"Região Norte",x:50,y:22},{n:"Região Sul",x:46,y:80},{n:"Região Leste",x:84,y:48},{n:"Região Oeste",x:15,y:50},{n:"Região Centro",x:50,y:50}];
+LOJAS.forEach((l,i)=>{l.rg=i%5;l.x=REG[l.rg].x+(rnd()-.5)*22;l.y=REG[l.rg].y+(rnd()-.5)*18;l.nota=4.1+rnd()*.8;l.aval=Math.round(150+rnd()*900);l.conv=.13+rnd()*.12;l.carr=.6+rnd()*.12;l.rec=.2+rnd()*.22});
+[3,17].forEach(i=>{LOJAS[i].m[11][2]={ped:0,fat:0,canc:0,cancV:0}});
+const ITENS=PRODUTOS.map(p=>({...p,ativo:{da:rnd()>.08,db:rnd()>.12},preco:{pdv:p.pdv,da:p.da,db:p.db}}));
+ITENS.forEach((p,i)=>{if(i%11===4)p.preco.da=Math.round(p.pdv*1.02)});
+const REF={da:1.20,db:1.15},CN={da:"Delivery A",db:"Delivery B"},foraRegra=(p,c)=>Math.abs(p.preco[c]/(p.pdv*REF[c])-1)>.02;
+const LOG=[],CD={busca:"",linha:"all",sel:new Set(),acao:"pct",canal:"da",valor:10,prev:null,ok:false,orig:0,dest:new Set()};
+const PESO={fat:30,tk:20,canc:20,nota:20,conv:10},PNOME={fat:"Faturamento",tk:"Ticket médio",canc:"Cancelamento (menor é melhor)",nota:"Nota dos clientes",conv:"Conversão"};
+const avg=a=>a.reduce((x,y)=>x+y,0)/(a.length||1),delivCanais=()=>S.canal==="all"?[1,2]:(S.canal==="0"?[]:[+S.canal]);
+function toast(t){let e=$("#toast");if(!e){e=document.createElement("div");e.id="toast";document.body.appendChild(e)}e.textContent=t;e.className="show";clearTimeout(toast.t);toast.t=setTimeout(()=>e.className="",3400)}
+const cmvAt=(p,c,d,tx)=>{const rec=p.preco[c]*(1-d)*(1-tx);return{cmv:rec>0?p.custo/rec:9,m:rec-p.custo}};
+
+/* ---------- regiões ---------- */
+function pgReg(){const ms=idxMeses(),cs=idxCanais(),sel=S.reg??null,
+  rows=REG.map((r,i)=>{const ls=LOJAS.filter(l=>l.rg===i),t=soma(ls,ms,cs);return{i,n:r.n,ls,...t,tk:t.fat/(t.ped||1),tc:t.canc/(t.ped||1)}}),tot=rows.reduce((a,r)=>a+r.fat,0),max=Math.max(...rows.map(r=>r.fat)),
+  lf=LOJAS.map(l=>({l,...soma([l],ms,cs)})),mx=Math.max(...lf.map(r=>r.fat)),mn=Math.min(...lf.map(r=>r.fat));
+  const mapa=`<svg class="mapa" viewBox="0 0 100 100" width="100%" style="max-height:430px;background:var(--bg);border-radius:12px">`+REG.map((r,i)=>`<ellipse data-act="reg" data-v="${i}" cx="${r.x}" cy="${r.y}" rx="${i==4?19:24}" ry="${i==4?17:15}" fill="${sel===i?"rgba(31,168,154,.22)":"rgba(106,119,130,.10)"}" stroke="var(--line)" style="cursor:pointer"/><text x="${r.x}" y="${r.y-(i==4?18.5:16.5)}" text-anchor="middle">${r.n}</text>`).join("")+lf.map(r=>`<circle cx="${r.l.x}" cy="${r.l.y}" r="${1.4+(r.fat-mn)/(mx-mn||1)*2.6}" fill="${sel===null||r.l.rg===sel?"#1FA89A":"#9FB3C3"}" fill-opacity=".8" stroke="#fff" stroke-width=".4"><title>${r.l.nome} · ${brl(r.fat)}</title></circle>`).join("")+`</svg>`;
+  const det=sel===null?"":(()=>{const r=rows[sel];return`<div class="card" style="margin-top:14px"><h2>${r.n} <small>${r.ls.length} lojas</small></h2><table>${lf.filter(x=>x.l.rg===sel).sort((a,b)=>b.fat-a.fat).map(x=>`<tr><td>${x.l.nome}</td><td>${x.l.fr}</td><td class="num">${brl(x.fat)}</td><td class="num">${pc(x.canc/(x.ped||1))}</td></tr>`).join("")}</table></div>`})();
+  return`<div class="grid g2"><div class="card"><h2>Mapa de lojas <small>tamanho = faturamento · clique numa região</small></h2>${mapa}</div>
+  <div class="card"><h2>Resumo por região <small>${S.reg==null?"todas":REG[sel].n}</small></h2><table><tr><th>Região</th><th class="num">Lojas</th><th class="num">Faturamento</th><th class="num">Parte</th><th class="num">Ticket</th><th class="num">Cancel.</th></tr>
+  ${rows.sort((a,b)=>b.fat-a.fat).map(r=>`<tr data-act="reg" data-v="${r.i}" style="cursor:pointer;${sel===r.i?"background:rgba(31,168,154,.1)":""}"><td>${r.n}</td><td class="num">${r.ls.length}</td><td class="num">${brl(r.fat)}</td><td class="num"><div class="bar" style="min-width:60px"><i style="width:${r.fat/max*100}%"></i></div>${pc(r.fat/tot,0)}</td><td class="num">${brl2(r.tk)}</td><td class="num">${pc(r.tc)}</td></tr>`).join("")}</table>${det}</div></div>`}
+
+/* ---------- comparar lojas ---------- */
+function pgComp(){const a=LOJAS[S.ca??0],b=LOJAS[S.cb??1],ms=idxMeses(),cs=idxCanais(),ta=soma([a],ms,cs),tb=soma([b],ms,cs),
+  opt=s=>LOJAS.map(l=>`<option value="${l.id-1}" ${l.id-1===s?"selected":""}>${l.nome}</option>`).join(""),
+  la=ms.map(m=>soma([a],[m],cs).fat),lb=ms.map(m=>soma([b],[m],cs).fat),max=Math.max(...la,...lb)||1,W=640,H=210,st=(W-20)/((ms.length-1)||1),
+  path=d=>d.map((v,i)=>`${i?"L":"M"}${10+i*st},${H-26-v/max*(H-50)}`).join(" "),
+  M=[["Faturamento",ta.fat,tb.fat,brl,1],["Pedidos",ta.ped,tb.ped,n0,1],["Ticket médio",ta.fat/ta.ped,tb.fat/tb.ped,brl2,1],["Cancelamento",ta.canc/(ta.ped||1),tb.canc/(tb.ped||1),pc,-1],["Nota dos clientes",a.nota,b.nota,v=>v.toFixed(2).replace(".",","),1],["Conversão",a.conv,b.conv,pc,1],["Recompra",a.rec,b.rec,pc,1]];
+  return`<div class="barra"><select data-ch="ca">${opt(S.ca??0)}</select><b>×</b><select data-ch="cb">${opt(S.cb??1)}</select></div>
+  <div class="grid g2"><div class="card"><h2>Indicadores lado a lado</h2><table><tr><th></th><th class="num">${a.nome}</th><th class="num">${b.nome}</th><th class="num">Diferença</th></tr>
+  ${M.map(([n,x,y,f,dir])=>{const d=y?x/y-1:0,bom=(x-y)*dir>0;return`<tr><td>${n}</td><td class="num" style="${bom?"font-weight:700;color:var(--ok)":""}">${f(x)}</td><td class="num" style="${!bom?"font-weight:700;color:var(--ok)":""}">${f(y)}</td><td class="num">${d>=0?"+":""}${pc(d)}</td></tr>`}).join("")}</table></div>
+  <div class="card"><h2>Faturamento mensal</h2><svg viewBox="0 0 ${W} ${H}" width="100%"><path d="${path(la)}" fill="none" stroke="#1FA89A" stroke-width="3"/><path d="${path(lb)}" fill="none" stroke="#F2A33A" stroke-width="3"/>${ms.map((m,i)=>`<text x="${10+i*st}" y="${H-6}" text-anchor="middle">${MESES[m]}</text>`).join("")}</svg>
+  <div class="leg"><span><i style="background:#1FA89A"></i>${a.nome}</span><span><i style="background:#F2A33A"></i>${b.nome}</span></div></div></div>`}
+
+/* ---------- ranking misto ---------- */
+function rankLinhas(){const ms=idxMeses(),cs=idxCanais(),r=LOJAS.map(l=>{const t=soma([l],ms,cs);return{l,fat:t.fat,tk:t.fat/(t.ped||1),canc:t.canc/(t.ped||1),nota:l.nota,conv:l.conv}});
+  const nz=(k,inv)=>{const v=r.map(x=>x[k]),lo=Math.min(...v),hi=Math.max(...v);r.forEach(x=>{const n=(x[k]-lo)/((hi-lo)||1);x["n_"+k]=inv?1-n:n})};
+  nz("fat");nz("tk");nz("canc",true);nz("nota");nz("conv");const w=Object.values(PESO).reduce((a,b)=>a+b,0)||1;
+  r.forEach(x=>x.score=Object.keys(PESO).reduce((s,k)=>s+PESO[k]*x["n_"+k],0)/w*100);return r.sort((a,b)=>b.score-a.score)}
+function rankTab(){const r=rankLinhas();return`<table><tr><th>#</th><th>Loja</th><th class="num">Fatur.</th><th class="num">Ticket</th><th class="num">Cancel.</th><th class="num">Nota</th><th class="num">Conv.</th><th style="width:22%">Nota final</th></tr>
+  ${r.slice(0,15).map((x,i)=>`<tr><td><span class="rank ${i?"":"r1"}">${i+1}</span></td><td>${x.l.nome}</td><td class="num">${brl(x.fat)}</td><td class="num">${brl2(x.tk)}</td><td class="num">${pc(x.canc)}</td><td class="num">${x.nota.toFixed(2).replace(".",",")}</td><td class="num">${pc(x.conv)}</td><td><div class="bar"><i style="width:${x.score}%"></i></div><small>${x.score.toFixed(0)} pontos</small></td></tr>`).join("")}</table>`}
+function pgRank(){return`<div class="grid g2" style="grid-template-columns:minmax(260px,340px) 1fr"><div class="card"><h2>Pesos do ranking <small>ajuste e veja a ordem mudar</small></h2>
+  ${Object.keys(PESO).map(k=>`<label class="f">${PNOME[k]} <b id="pv_${k}">${PESO[k]}</b></label><input type="range" min="0" max="50" step="5" value="${PESO[k]}" data-in="peso" data-k="${k}">`).join("")}
+  <p class="nota" style="margin-top:12px">Cada indicador é colocado numa escala de 0 a 100 entre a pior e a melhor loja, e a nota final é a média ponderada pelos pesos.</p></div>
+  <div class="card"><h2>Ranking misto de lojas <small>top 15</small></h2><div class="scroll" id="rkTab" style="max-height:none">${rankTab()}</div></div></div>`}
+
+/* ---------- qualidade: funil, recompra, avaliações ---------- */
+function pgQual(){const ms=idxMeses(),cs=delivCanais();
+  if(!cs.length)return`<div class="card">Funil, recompra e avaliações valem para os canais de delivery. Escolha "Todos os canais", "Delivery A" ou "Delivery B".</div>`;
+  const r=LOJAS.map(l=>{const ped=soma([l],ms,cs).ped;return{l,ped,vis:ped/l.conv,car:ped/l.carr}}),V=r.reduce((a,x)=>a+x.vis,0),C=r.reduce((a,x)=>a+x.car,0),P=r.reduce((a,x)=>a+x.ped,0),
+  nota=avg(LOJAS.map(l=>l.nota)),aval=LOJAS.reduce((a,l)=>a+l.aval,0),st=[.03,.03,.06,.2,.68],fun=[["Visitas à loja",V,1],["Adicionaram ao carrinho",C,C/V],["Pedidos concluídos",P,P/V]];
+  return`<div class="kpis"><div class="kpi"><span>Nota média</span><b>${nota.toFixed(2).replace(".",",")} ★</b></div><div class="kpi"><span>Avaliações</span><b>${n0(aval)}</b></div><div class="kpi"><span>Conversão</span><b>${pc(P/V)}</b></div><div class="kpi"><span>Recompra</span><b>${pc(avg(LOJAS.map(l=>l.rec)))}</b><em>clientes que voltam em 30 dias</em></div></div>
+  <div class="grid g2"><div class="card"><h2>Funil de conversão</h2>${fun.map(([n,v,p],i)=>`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between"><span>${n}</span><b>${n0(v)} <small style="color:var(--mut)">${pc(p)}</small></b></div><div class="bar" style="height:14px"><i style="width:${p*100}%;background:${["#6C7BD9","#1FA89A","#F2A33A"][i]}"></i></div></div>`).join("")}</div>
+  <div class="card"><h2>Distribuição das notas</h2>${st.map((p,i)=>`<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px"><span style="width:34px">${5-i} ★</span><div class="bar" style="flex:1"><i style="width:${st[4-i]*100}%;background:var(--acc2)"></i></div><span style="width:40px;text-align:right">${pc(st[4-i],0)}</span></div>`).join("")}</div></div>
+  <div class="card"><h2>Lojas que pedem atenção <small>menores notas</small></h2><table><tr><th>Loja</th><th class="num">Nota</th><th class="num">Avaliações</th><th class="num">Conversão</th><th class="num">Recompra</th></tr>
+  ${[...LOJAS].sort((a,b)=>a.nota-b.nota).slice(0,8).map(l=>`<tr><td>${l.nome}</td><td class="num"><span class="tag ${l.nota<4.4?"bad":"ok"}">${l.nota.toFixed(2).replace(".",",")}</span></td><td class="num">${n0(l.aval)}</td><td class="num">${pc(l.conv)}</td><td class="num">${pc(l.rec)}</td></tr>`).join("")}</table></div>`}
+
+/* ---------- alertas ---------- */
+function alertas(){const A=[],SV={alta:0,"média":1,baixa:2};
+  LOJAS.forEach(l=>{const u=soma([l],[11],[0,1,2]),p=soma([l],[10],[0,1,2]),d=soma([l],[9,10,11],[1,2]);
+    if(l.m[11].some(x=>x.ped===0))A.push({tipo:"Dado",sev:"alta",loja:l.nome,msg:"Um canal veio sem nenhum pedido no último mês. Conferir a carga antes de analisar.",acao:"Verificar a integração"});
+    else if(u.fat/p.fat-1<-.12)A.push({tipo:"Negócio",sev:"média",loja:l.nome,msg:`Faturamento caiu ${pc(1-u.fat/p.fat,0)} contra o mês anterior.`,acao:"Investigar horário, cardápio e preço"});
+    if(d.canc/(d.ped||1)>.05)A.push({tipo:"Negócio",sev:"alta",loja:l.nome,msg:`Cancelamento de ${pc(d.canc/d.ped)} nos últimos 3 meses.`,acao:"Ver motivos e capacidade de produção"});
+    if(l.nota<4.4)A.push({tipo:"Negócio",sev:"média",loja:l.nome,msg:`Nota ${l.nota.toFixed(2).replace(".",",")}, abaixo de 4,40.`,acao:"Ler avaliações recentes"})});
+  ["da","db"].forEach(c=>{const r=ITENS.filter(p=>!p.ativo[c]&&p.un>600);if(r.length)A.push({tipo:"Negócio",sev:"média",loja:"Rede",msg:`${r.length} item(ns) de alta saída pausado(s) no ${CN[c]}: ${r.slice(0,3).map(p=>p.nome).join(", ")}.`,acao:"Reativar no Cardápio"})});
+  const fr=ITENS.filter(p=>["da","db"].some(c=>foraRegra(p,c)));if(fr.length)A.push({tipo:"Negócio",sev:"baixa",loja:"Rede",msg:`${fr.length} item(ns) com preço fora da regra do canal.`,acao:"Aplicar regra no Cardápio"});
+  const pr=ITENS.filter(p=>cmvAt(p,"da",.3,.2459).cmv>=.5);if(pr.length)A.push({tipo:"Negócio",sev:"baixa",loja:"Rede",msg:`${pr.length} item(ns) passam de 50% de CMV com 30% de desconto: promoção que não paga.`,acao:"Ver CMV e promoção"});
+  return A.sort((a,b)=>SV[a.sev]-SV[b.sev])}
+function pgAlert(){const A=alertas(),f=S.at||"todos",L=A.filter(a=>f==="todos"||a.tipo===f),n=t=>A.filter(a=>a.tipo===t).length;
+  return`<div class="kpis"><div class="kpi"><span>Alertas</span><b>${A.length}</b></div><div class="kpi"><span>Falha de dado</span><b>${n("Dado")}</b><em>corrigir a carga, não a loja</em></div><div class="kpi"><span>Movimento de negócio</span><b>${n("Negócio")}</b><em>exige decisão</em></div></div>
+  <div class="card"><h2>Alertas ativos <select data-ch="at" style="font-size:12px"><option value="todos">Todos</option><option value="Dado" ${f==="Dado"?"selected":""}>Falha de dado</option><option value="Negócio" ${f==="Negócio"?"selected":""}>Negócio</option></select></h2>
+  <table><tr><th>Tipo</th><th>Gravidade</th><th>Loja</th><th>O que aconteceu</th><th>Próximo passo</th></tr>${L.map(a=>`<tr><td><span class="tag ${a.tipo==="Dado"?"warn":"ok"}">${a.tipo==="Dado"?"Falha de dado":"Negócio"}</span></td><td><span class="tag ${a.sev==="alta"?"bad":a.sev==="média"?"warn":"ok"}">${a.sev}</span></td><td>${a.loja}</td><td style="white-space:normal">${a.msg}</td><td style="white-space:normal">${a.acao}</td></tr>`).join("")}</table></div>
+  <p class="nota" style="margin-top:10px">Os alertas se recalculam com o cardápio: pause um item ou mude um preço na tela Cardápio e volte aqui.</p>`}
+
+/* ---------- cardápio: cadastro, ajuste em massa, planilha e replicação ---------- */
+const itensVis=()=>{const q=CD.busca.toLowerCase();return ITENS.filter(p=>(CD.linha==="all"||p.linha===CD.linha)&&(!q||p.nome.toLowerCase().includes(q)))};
+function prevTab(){if(!CD.prev)return"";const nR=CD.prev.filter(x=>x.risco).length;
+  if(!CD.prev.length)return`<p class="nota">Nada a alterar com esses parâmetros.</p>`;
+  return`<div class="scroll" style="max-height:240px;margin-top:10px"><table><tr><th>Produto</th><th>Canal</th><th class="num">De</th><th class="num">Para</th><th class="num">Variação</th><th></th></tr>${CD.prev.map(x=>{const p=ITENS.find(i=>i.id===x.id);return`<tr><td>${p.nome}</td><td>${CN[x.c]}</td><td class="num">${brl2(x.de)}</td><td class="num">${brl2(x.para)}</td><td class="num">${x.de?pc(x.para/x.de-1):"–"}</td><td>${x.risco?`<span class="tag bad">${x.para<p.custo?"abaixo do custo":"variação alta"}</span>`:""}</td></tr>`}).join("")}</table></div>
+  ${nR?`<label class="risk"><input type="checkbox" data-ch="confirma" ${CD.ok?"checked":""}> <b>Enviar mesmo assim?</b> ${nR} linha(s) de risco (variação acima de 30% ou preço abaixo do custo).</label>`:""}
+  <div class="barra" style="margin-top:10px"><button class="btn" data-act="aplicar" ${nR&&!CD.ok?"disabled":""}>Aplicar ${CD.prev.length} alteração(ões)</button><button class="btn sec" data-act="cancelaPrev">Cancelar</button></div>`}
+function pgCard(){const L=itensVis(),sel=CD.sel,linhas=[...new Set(ITENS.map(p=>p.linha))];
+  return`<div class="card" style="margin-bottom:14px"><h2>Cadastro de cardápio <small>${ITENS.filter(p=>p.ativo.da||p.ativo.db).length} itens ativos em delivery</small></h2>
+  <p class="nota">Demonstração: as alterações ficam só neste navegador. Nada é enviado a nenhuma plataforma.</p>
+  <div class="barra"><input type="search" data-in="cbusca" placeholder="Buscar produto…" value="${CD.busca}" id="cBusca"><select data-ch="clinha"><option value="all">Todas as linhas</option>${linhas.map(l=>`<option ${CD.linha===l?"selected":""}>${l}</option>`).join("")}</select>
+  <span class="esp"></span><button class="btn sec" data-act="exportar">⬇ Exportar planilha</button><label class="btn sec">⬆ Importar planilha<input type="file" accept=".csv" data-ch="importar" hidden></label><button class="btn sec" data-act="desfazer" ${LOG.length?"":"disabled"}>↶ Desfazer última</button></div>
+  <div class="scroll" style="max-height:430px"><table><tr><th><input type="checkbox" data-ch="selTodos" ${L.length&&L.every(p=>sel.has(p.id))?"checked":""}></th><th>Produto</th><th>Linha</th><th class="num">Custo</th><th class="num">Balcão</th><th class="num">Delivery A</th><th class="num">Delivery B</th><th>Ativo A</th><th>Ativo B</th><th>Regra</th></tr>
+  ${L.map(p=>`<tr><td><input type="checkbox" data-ch="sel" data-id="${p.id}" ${sel.has(p.id)?"checked":""}></td><td>${p.nome}</td><td>${p.linha}</td><td class="num">${brl2(p.custo)}</td><td class="num">${brl2(p.pdv)}</td>
+  ${["da","db"].map(c=>`<td class="num"><input type="number" class="pr" data-ch="preco" data-id="${p.id}" data-c="${c}" value="${p.preco[c]}" step="1" min="0"></td>`).join("")}
+  ${["da","db"].map(c=>`<td><label class="sw"><input type="checkbox" data-ch="ativo" data-id="${p.id}" data-c="${c}" ${p.ativo[c]?"checked":""}><i></i></label></td>`).join("")}
+  <td>${["da","db"].some(c=>foraRegra(p,c))?'<span class="tag warn">fora da regra</span>':'<span class="tag ok">ok</span>'}</td></tr>`).join("")}</table></div></div>
+  <div class="grid g2"><div class="card"><h2>Ajuste em massa <small id="nsel">${sel.size} itens selecionados</small></h2>
+  <div class="barra"><select data-ch="macao"><option value="pct" ${CD.acao==="pct"?"selected":""}>Aumentar em %</option><option value="pctm" ${CD.acao==="pctm"?"selected":""}>Reduzir em %</option><option value="val" ${CD.acao==="val"?"selected":""}>Definir valor (R$)</option><option value="regra" ${CD.acao==="regra"?"selected":""}>Aplicar regra do canal</option></select>
+  <select data-ch="mcanal"><option value="da" ${CD.canal==="da"?"selected":""}>Delivery A</option><option value="db" ${CD.canal==="db"?"selected":""}>Delivery B</option><option value="ab" ${CD.canal==="ab"?"selected":""}>Ambos</option></select>
+  <input type="number" data-in="mvalor" value="${CD.valor}" style="width:90px" ${CD.acao==="regra"?"disabled":""}><button class="btn" data-act="previa">Pré-visualizar</button></div>
+  <p class="nota">Regra do canal: Delivery A = balcão +20%, Delivery B = balcão +15%.</p><div id="prev">${prevTab()}</div></div>
+  <div class="card"><h2>Replicar cardápio para outras lojas</h2><label class="f">Loja de origem</label><select data-ch="rorig" style="width:100%">${LOJAS.map(l=>`<option value="${l.id-1}" ${CD.orig===l.id-1?"selected":""}>${l.nome}</option>`).join("")}</select>
+  <label class="f">Lojas de destino <b>${CD.dest.size} marcadas</b></label><div class="scroll" style="max-height:150px;border:1px solid var(--line);border-radius:10px;padding:6px 10px">${LOJAS.filter(l=>l.id-1!==CD.orig).map(l=>`<label style="display:block"><input type="checkbox" data-ch="rdest" data-id="${l.id-1}" ${CD.dest.has(l.id-1)?"checked":""}> ${l.nome}</label>`).join("")}</div>
+  <div class="barra" style="margin-top:10px"><button class="btn" data-act="replicar">Replicar cardápio e preços</button></div></div></div>
+  <div class="card" style="margin-top:14px"><h2>Histórico de alterações <small>${LOG.length} nesta sessão</small></h2>${LOG.length?`<table>${LOG.slice(0,8).map(x=>`<tr><td>${x.t}</td><td>${x.txt}</td></tr>`).join("")}</table>`:`<p class="nota">Nenhuma alteração ainda.</p>`}</div>`}
+
+const ACT={
+  reg(v){S.reg=S.reg===+v?null:+v;render()},
+  ca(v){S.ca=+v;render()},cb(v){S.cb=+v;render()},at(v){S.at=v;render()},
+  peso(v,t){PESO[t.dataset.k]=+v;$("#pv_"+t.dataset.k).textContent=v;$("#rkTab").innerHTML=rankTab()},
+  cbusca(v,t){CD.busca=v;const p=t.selectionStart;render();const n=$("#cBusca");n.focus();n.setSelectionRange(p,p)},
+  clinha(v){CD.linha=v;render()},
+  sel(v,t){const id=+t.dataset.id;t.checked?CD.sel.add(id):CD.sel.delete(id);$("#nsel").textContent=CD.sel.size+" itens selecionados"},
+  selTodos(v,t){itensVis().forEach(p=>t.checked?CD.sel.add(p.id):CD.sel.delete(p.id));render()},
+  macao(v){CD.acao=v;CD.prev=null;render()},mcanal(v){CD.canal=v;CD.prev=null},mvalor(v){CD.valor=+v||0;CD.prev=null;$("#prev").innerHTML=""},
+  confirma(v,t){CD.ok=t.checked;$("#prev").innerHTML=prevTab()},
+  previa(){if(!CD.sel.size){toast("Marque ao menos um produto na tabela.");return}
+    const cs=CD.canal==="ab"?["da","db"]:[CD.canal];CD.prev=[];CD.ok=false;
+    ITENS.filter(p=>CD.sel.has(p.id)).forEach(p=>cs.forEach(c=>{const de=p.preco[c];let para=CD.acao==="pct"?de*(1+CD.valor/100):CD.acao==="pctm"?de*(1-CD.valor/100):CD.acao==="val"?CD.valor:p.pdv*REF[c];para=Math.round(para);
+      if(para!==de)CD.prev.push({id:p.id,c,de,para,risco:para<=0||para<p.custo||Math.abs(para/(de||1)-1)>.3})}));$("#prev").innerHTML=prevTab()},
+  cancelaPrev(){CD.prev=null;CD.ok=false;$("#prev").innerHTML=""},
+  aplicar(){const ant=CD.prev.map(x=>({...x}));CD.prev.forEach(x=>{ITENS.find(p=>p.id===x.id).preco[x.c]=x.para});
+    LOG.unshift({t:new Date().toLocaleTimeString("pt-BR"),txt:`Ajuste em massa: ${ant.length} preço(s) alterado(s)`,undo:()=>ant.forEach(x=>{ITENS.find(p=>p.id===x.id).preco[x.c]=x.de})});
+    toast(`${ant.length} preço(s) atualizado(s) (simulação, nada foi enviado)`);CD.prev=null;CD.ok=false;render()},
+  preco(v,t){const p=ITENS.find(i=>i.id===+t.dataset.id),c=t.dataset.c,de=p.preco[c],para=Math.max(0,Math.round(+v||0));p.preco[c]=para;
+    LOG.unshift({t:new Date().toLocaleTimeString("pt-BR"),txt:`${p.nome} · ${CN[c]}: ${brl2(de)} → ${brl2(para)}`,undo:()=>{p.preco[c]=de}});render()},
+  ativo(v,t){const p=ITENS.find(i=>i.id===+t.dataset.id),c=t.dataset.c,de=p.ativo[c];p.ativo[c]=t.checked;
+    LOG.unshift({t:new Date().toLocaleTimeString("pt-BR"),txt:`${p.nome} · ${CN[c]}: ${t.checked?"ativado":"pausado"}`,undo:()=>{p.ativo[c]=de}});render()},
+  desfazer(){const x=LOG.shift();if(x){x.undo();toast("Última alteração desfeita");render()}},
+  exportar(){const csv="﻿id;produto;linha;custo;balcao;delivery_a;delivery_b;ativo_a;ativo_b\n"+ITENS.map(p=>[p.id,p.nome,p.linha,p.custo,p.pdv,p.preco.da,p.preco.db,+p.ativo.da,+p.ativo.db].join(";")).join("\n"),a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="cardapio.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)},
+  importar(v,t){const f=t.files[0];if(!f)return;f.text().then(tx=>{const ls=tx.replace(/^﻿/,"").split(/\r?\n/).filter(Boolean),h=ls[0].split(/[;,]/).map(s=>s.trim().toLowerCase()),ix=h.indexOf("id"),ia=h.indexOf("delivery_a"),ib=h.indexOf("delivery_b");
+    if(ix<0||(ia<0&&ib<0)){toast("Planilha sem as colunas id e delivery_a / delivery_b");return}
+    CD.prev=[];CD.ok=false;ls.slice(1).forEach(l=>{const c=l.split(/[;,]/),p=ITENS.find(i=>i.id===+c[ix]);if(!p)return;[["da",ia],["db",ib]].forEach(([k,i])=>{if(i<0)return;const para=Math.round(+String(c[i]).replace(",","."));if(isFinite(para)&&para!==p.preco[k])CD.prev.push({id:p.id,c:k,de:p.preco[k],para,risco:para<=0||para<p.custo||Math.abs(para/(p.preco[k]||1)-1)>.3})})});
+    t.value="";render();toast(`Planilha lida: ${CD.prev.length} alteração(ões) para revisar`)})},
+  rorig(v){CD.orig=+v;CD.dest.delete(+v);render()},
+  rdest(v,t){const id=+t.dataset.id;t.checked?CD.dest.add(id):CD.dest.delete(id);render()},
+  replicar(){if(!CD.dest.size){toast("Marque ao menos uma loja de destino.");return}toast(`Simulação: cardápio de ${LOJAS[CD.orig].nome} replicado para ${CD.dest.size} loja(s). Nada foi enviado.`);
+    LOG.unshift({t:new Date().toLocaleTimeString("pt-BR"),txt:`Replicação simulada: ${LOJAS[CD.orig].nome} → ${CD.dest.size} loja(s)`,undo:()=>{}});CD.dest.clear();render()}
+};
+$("#pg").addEventListener("click",e=>{const t=e.target.closest("[data-act]");if(t&&ACT[t.dataset.act])ACT[t.dataset.act](t.dataset.v,t,e)});
+$("#pg").addEventListener("change",e=>{const t=e.target.closest("[data-ch]");if(t&&ACT[t.dataset.ch])ACT[t.dataset.ch](t.value,t,e)});
+$("#pg").addEventListener("input",e=>{const t=e.target.closest("[data-in]");if(t&&ACT[t.dataset.in])ACT[t.dataset.in](t.value,t,e)});
 
 /* ---------- navegação ---------- */
-const TIT={geral:["Visão geral","Rede, canais e lojas num só lugar"],lojas:["Lojas","Desempenho por unidade e responsável"],cancel:["Cancelamentos","Motivo, quantidade e valor"],cmv:["CMV e promoção","Quanto a promoção custa e quantos pedidos ela precisa"]};
+const TIT={geral:["Visão geral","Rede, canais e lojas num só lugar"],lojas:["Lojas","Desempenho por unidade e responsável"],cancel:["Cancelamentos","Motivo, quantidade e valor"],cmv:["CMV e promoção","Quanto a promoção custa e quantos pedidos ela precisa"],reg:["Regiões","Mapa e desempenho por região"],comp:["Comparar lojas","Duas unidades lado a lado"],rank:["Ranking misto","Nota final com pesos que você ajusta"],qual:["Funil e avaliações","Conversão, recompra e nota dos clientes"],card:["Cardápio","Cadastro, ajuste em massa de preços, planilha e replicação"],alert:["Alertas","Falha de dado separada de movimento de negócio"]};
 function render(){const[t,s]=TIT[S.pg];$("#tit").innerHTML=`${t}<small>${s}</small>`;
-  $("#filtros").style.display=S.pg==="cmv"?"none":"flex";
-  $("#pg").innerHTML={geral:pgGeral,lojas:pgLojas,cancel:pgCancel,cmv:pgCmv}[S.pg]();
+  $("#filtros").style.display=["cmv","card","alert"].includes(S.pg)?"none":"flex";
+  const sc=document.querySelector("#pg .scroll"),top=sc?sc.scrollTop:0,pgs={geral:pgGeral,lojas:pgLojas,cancel:pgCancel,cmv:pgCmv,reg:pgReg,comp:pgComp,rank:pgRank,qual:pgQual,card:pgCard,alert:pgAlert};
+  $("#pg").innerHTML=pgs[S.pg]();const sc2=document.querySelector("#pg .scroll");if(sc2&&S.pg==="card")sc2.scrollTop=top;
   document.querySelectorAll("#menu a").forEach(a=>a.classList.toggle("on",a.dataset.p===S.pg));
   if(S.pg==="cmv"){atualizaCmv();$("#cProd").onchange=e=>{CM.prod=+e.target.value;atualizaCmv()};$("#cCan").onchange=e=>{CM.canal=e.target.value;atualizaCmv()};$("#cDesc").oninput=e=>{CM.desc=+e.target.value;atualizaCmv()};$("#cTx").oninput=e=>{CM.tx=+e.target.value||0;atualizaCmv()}}
   if(S.pg==="lojas"){const b=$("#busca");b.oninput=e=>{S.busca=e.target.value;const p=e.target.selectionStart;render();const n=$("#busca");n.focus();n.setSelectionRange(p,p)};document.querySelectorAll("th[data-o]").forEach(h=>h.onclick=()=>{const k=h.dataset.o;S.ord=S.ord.k===k?{k,d:-S.ord.d}:{k,d:k==="nome"||k==="fr"?1:-1};render()})}}
